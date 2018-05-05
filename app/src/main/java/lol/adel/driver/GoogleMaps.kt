@@ -11,29 +11,30 @@ import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.experimental.suspendCancellableCoroutine
 import kotlin.coroutines.experimental.suspendCoroutine
 
+private fun MapView.onEvent(event: Lifecycle.Event): Unit =
+    when (event) {
+        Lifecycle.Event.ON_START ->
+            onStart()
+
+        Lifecycle.Event.ON_RESUME ->
+            onResume()
+
+        Lifecycle.Event.ON_PAUSE ->
+            onPause()
+
+        Lifecycle.Event.ON_STOP ->
+            onStop()
+
+        Lifecycle.Event.ON_DESTROY ->
+            onDestroy()
+
+        Lifecycle.Event.ON_CREATE, Lifecycle.Event.ON_ANY ->
+            Unit
+    }
+
 fun MapView.onCreate(savedInstanceState: Bundle?, lifecycle: Lifecycle) {
     onCreate(savedInstanceState)
-    lifecycle.addObserver(GenericLifecycleObserver { _, event ->
-        when (event) {
-            Lifecycle.Event.ON_START ->
-                onStart()
-
-            Lifecycle.Event.ON_RESUME ->
-                onResume()
-
-            Lifecycle.Event.ON_PAUSE ->
-                onPause()
-
-            Lifecycle.Event.ON_STOP ->
-                onStop()
-
-            Lifecycle.Event.ON_DESTROY ->
-                onDestroy()
-
-            Lifecycle.Event.ON_CREATE, Lifecycle.Event.ON_ANY, null ->
-                Unit
-        }
-    })
+    lifecycle.addObserver(GenericLifecycleObserver { _, event -> onEvent(event) })
 }
 
 fun marker(position: LatLng, title: String? = null): MarkerOptions =
