@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1073199376550",
+    "firebase_url": "https://piznes-84fe3.firebaseio.com",
+    "project_id": "piznes-84fe3",
+    "storage_bucket": "piznes-84fe3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1073199376550:android:9f8d503f82106996",
+        "android_client_info": {
+          "package_name": "lol.adel.driver"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1073199376550-l6m3bmivan1l39fvue78dfpq5b43404j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "lol.adel.driver",
+            "certificate_hash": "6d07bd48d4d8905282214db445be34a65c35ce08"
+          }
+        },
+        {
+          "client_id": "1073199376550-dlje00av83tkpvj4e7ceh5q4ko410i70.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3mbRl-ecXmtuWgrWq7EfG_aJ20zD_Q_U"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1073199376550-dlje00av83tkpvj4e7ceh5q4ko410i70.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

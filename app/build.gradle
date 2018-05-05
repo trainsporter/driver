@@ -1,0 +1,45 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdkVersion 27
+
+    defaultConfig {
+        applicationId "lol.adel.driver"
+
+        minSdkVersion 16
+        targetSdkVersion 27
+
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+}
+
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
+
+ext.anko_version = '0.10.5'
+ext.gms_version = "15.0.1"
+
+dependencies {
+    implementation "com.google.android.gms:play-services-maps:$gms_version"
+    implementation "com.google.android.gms:play-services-location:$gms_version"
+
+    implementation 'com.google.firebase:firebase-auth:15.1.0'
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation "org.jetbrains.anko:anko-commons:$anko_version"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:0.22.5'
+    implementation 'com.markodevcic.peko:peko:0.3'
+
+    testImplementation 'junit:junit:4.12'
+
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
