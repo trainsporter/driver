@@ -2,6 +2,7 @@ package lol.adel.driver
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import com.firebase.ui.auth.AuthUI
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapView
@@ -13,6 +14,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        startActivityForResult(
+            AuthUI.getInstance()
+                .createSignInIntentBuilder()
+                .setAvailableProviders(listOf(
+                    AuthUI.IdpConfig.PhoneBuilder()
+                        .build()
+                ))
+                .build(),
+            1234
+        )
+        finish()
+        return
 
         val mv = MapView(ctx)
         mv.onCreate(savedInstanceState, lifecycle)
