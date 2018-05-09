@@ -7,8 +7,6 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.tasks.Task
-import kotlinx.coroutines.experimental.suspendCancellableCoroutine
 import kotlin.coroutines.experimental.suspendCoroutine
 
 private fun MapView.onEvent(event: Lifecycle.Event): Unit =
@@ -46,18 +44,5 @@ suspend fun MapView.map(): GoogleMap =
     suspendCoroutine { cont ->
         getMapAsync {
             cont.resume(it)
-        }
-    }
-
-suspend fun <T> Task<T>.await(): T =
-    suspendCancellableCoroutine { cont ->
-        addOnSuccessListener {
-            cont.resume(it)
-        }
-        addOnFailureListener {
-            cont.resumeWithException(it)
-        }
-        addOnCanceledListener {
-            cont.cancel()
         }
     }

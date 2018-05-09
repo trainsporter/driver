@@ -13,12 +13,12 @@ import com.bluelinelabs.conductor.RouterTransaction
 import com.bluelinelabs.conductor.archlifecycle.LifecycleController
 import com.bluelinelabs.conductor.archlifecycle.LifecycleRestoreViewOnCreateController
 import com.google.android.gms.maps.MapView
+import kotlinx.coroutines.experimental.channels.consumeEach
 import org.jetbrains.anko.act
 import org.jetbrains.anko.button
 import org.jetbrains.anko.ctx
 import org.jetbrains.anko.find
 import org.jetbrains.anko.frameLayout
-import org.jetbrains.anko.sdk15.listeners.onClick
 
 object Ids {
     val map = generateViewId()
@@ -54,34 +54,39 @@ class MainActivity : AppCompatActivity() {
         }
 }
 
+
 class NoOrdersController : LifecycleController() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup): View =
         activitySync.run {
             frameLayout {
                 button {
-                    OnlineService.STATUS.distinctUntilChanged().subscribe {
-                        when (it!!) {
-                            OnlineStatus.ONLINE -> {
-                                text = "Go Offline"
-                                onClick {
-                                    stopService(OnlineService.intent(ctx))
-                                }
-                            }
+                    untilDestroy {
+                        OnlineService.STATUS.openSubscription().consumeEach {
+                            when (it) {
+                                OnlineStatus.ONLINE -> {
+                                    text = "Go Offline"
 
-                            OnlineStatus.OFFLINE -> {
-                                text = "Go Online"
-                                onClick {
-                                    uiCoroutine {
-                                        requestLocationPermission()
-                                        if (hasLocationPermission()) {
-                                            startService(OnlineService.intent(ctx))
+                                    setOnClickListener {
+                                        stopService(OnlineService.intent(ctx))
+                                    }
+                                }
+
+                                OnlineStatus.OFFLINE -> {
+                                    text = "Go Online"
+
+                                    setOnClickListener {
+                                        untilDestroy {
+                                            requestLocationPermission()
+                                            if (hasLocationPermission()) {
+                                                startService(OnlineService.intent(ctx))
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    }.bind(lifecycle)
+                    }
                 }.lparams {
                     gravity = Gravity.CENTER
                 }
@@ -100,7 +105,7 @@ class OrderController : LifecycleRestoreViewOnCreateController() {
             mv.id = Ids.map
             mv.onCreate(savedViewState, lifecycle)
 
-            uiCoroutine {
+            untilDestroy {
                 val map = mv.map()
                 map.uiSettings.isMyLocationButtonEnabled = false
 

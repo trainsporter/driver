@@ -8,7 +8,7 @@ import com.google.android.gms.location.LocationAvailability
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
-import io.reactivex.Observable
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
 
 sealed class LocationEvent {
     data class Result(val result: LocationResult) : LocationEvent()
@@ -19,17 +19,21 @@ val LocationEvent.Result.lastLocation: Location
     get() = result.lastLocation
 
 @SuppressLint("MissingPermission")
-fun FusedLocationProviderClient.locationUpdates(req: LocationRequest): Observable<LocationEvent> =
-    Observable.create { emitter ->
+fun FusedLocationProviderClient.locations(req: LocationRequest): ReceiveChannel<LocationEvent> =
+    CancellableRendezvous<LocationEvent>().also { chan ->
         val cb = object : LocationCallback() {
-            override fun onLocationResult(p0: LocationResult): Unit =
-                emitter.onNext(LocationEvent.Result(p0))
+            override fun onLocationResult(p0: LocationResult) {
+                chan.offer(LocationEvent.Result(p0))
+            }
 
-            override fun onLocationAvailability(p0: LocationAvailability): Unit =
-                emitter.onNext(LocationEvent.Availability(p0))
+            override fun onLocationAvailability(p0: LocationAvailability) {
+                chan.offer(LocationEvent.Availability(p0))
+            }
         }
 
-        emitter.setCancellable { removeLocationUpdates(cb) }
+        chan.cancellation = {
+            removeLocationUpdates(cb)
+        }
 
         requestLocationUpdates(req, cb, Looper.getMainLooper())
     }

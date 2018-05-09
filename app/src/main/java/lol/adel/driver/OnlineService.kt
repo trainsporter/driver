@@ -5,8 +5,9 @@ import android.content.Context
 import android.content.Intent
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
-import com.jakewharton.rxrelay2.BehaviorRelay
 import com.squareup.moshi.Moshi
+import kotlinx.coroutines.experimental.channels.ConflatedBroadcastChannel
+import kotlinx.coroutines.experimental.channels.consumeEach
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -25,7 +26,7 @@ class OnlineService : LifecycleService() {
 
     companion object {
 
-        val STATUS = BehaviorRelay.createDefault(OnlineStatus.OFFLINE)!!
+        val STATUS = ConflatedBroadcastChannel(OnlineStatus.OFFLINE)
 
         fun intent(ctx: Context): Intent =
             Intent(ctx, OnlineService::class.java)
@@ -77,31 +78,35 @@ class OnlineService : LifecycleService() {
             .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
             .setInterval(10000)
 
-        FusedLocationProviderClient(ctx).locationUpdates(locationRequest).subscribe {
-            when (it) {
-                is LocationEvent.Result -> {
-                    val msg = WsMessage(
-                        operation = WsOperation.position,
-                        payload = it.lastLocation.toGeoPoint()
-                    )
-                    val json = moshi.toJson(msg)
-                    Timber.d("sending $json")
-                    socket.send(json)
-                }
+        untilDestroy {
+            FusedLocationProviderClient(ctx).locations(locationRequest).consumeEach {
+                when (it) {
+                    is LocationEvent.Result -> {
+                        val msg = WsMessage(
+                            operation = WsOperation.position,
+                            payload = it.lastLocation.toGeoPoint()
+                        )
+                        val json = moshi.toJson(msg)
+                        Timber.d("sending $json")
+                        socket.send(json)
+                    }
 
-                is LocationEvent.Availability -> {
-                    if (!it.availability.isLocationAvailable) {
-                        stopSelf()
+                    is LocationEvent.Availability -> {
+                        Timber.d("location availability $it")
+                        if (!it.availability.isLocationAvailable) {
+                            stopSelf()
+                        }
                     }
                 }
             }
-        }.bind(lifecycle)
+        }
 
-        STATUS.accept(OnlineStatus.ONLINE)
+        STATUS.offer(OnlineStatus.ONLINE)
 
         onDestroy {
+            Timber.d("onDestroy")
             socket.close(1000, null)
-            STATUS.accept(OnlineStatus.OFFLINE)
+            STATUS.offer(OnlineStatus.OFFLINE)
         }
     }
 }
