@@ -18,7 +18,9 @@ import org.jetbrains.anko.act
 import org.jetbrains.anko.button
 import org.jetbrains.anko.ctx
 import org.jetbrains.anko.find
-import org.jetbrains.anko.frameLayout
+import org.jetbrains.anko.verticalLayout
+import timber.log.Timber
+import java.util.*
 
 object Ids {
     val map = generateViewId()
@@ -59,7 +61,7 @@ class NoOrdersController : LifecycleController() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup): View =
         activitySync.run {
-            frameLayout {
+            verticalLayout {
                 button {
                     untilDestroy {
                         OnlineService.STATUS.openSubscription().consumeEach {
@@ -84,6 +86,22 @@ class NoOrdersController : LifecycleController() {
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
+                }.lparams {
+                    gravity = Gravity.CENTER
+                }
+
+                button {
+                    text = "Make Order"
+
+                    setOnClickListener {
+                        untilDestroy {
+                            try {
+                                makeEndpoints(makeClient(), makeMoshi()).createOrder(genOrder(Random())).await()
+                            } catch (e: Exception) {
+                                Timber.e(e)
                             }
                         }
                     }

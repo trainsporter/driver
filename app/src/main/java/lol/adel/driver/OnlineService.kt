@@ -5,12 +5,8 @@ import android.content.Context
 import android.content.Intent
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
-import com.squareup.moshi.Moshi
 import kotlinx.coroutines.experimental.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
-import okhttp3.HttpUrl
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
@@ -35,15 +31,7 @@ class OnlineService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
 
-        val url = HttpUrl.parse("https://trainsporter-api-1.herokuapp.com/mobile")!!.newBuilder()
-            .addQueryParameter("driver_id", currentUserId())
-            .build()
-
-        val req = Request.Builder()
-            .url(url)
-            .build()
-
-        val client = OkHttpClient()
+        val client = makeClient()
 
         val listener = object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
@@ -69,14 +57,13 @@ class OnlineService : LifecycleService() {
             }
         }
 
-        Timber.d("socket opening $url")
-        val socket = client.newWebSocket(req, listener)
-
-        val moshi = Moshi.Builder().build()
+        val socket = client.newWebSocket(wsRequest(), listener)
+        val moshi = makeMoshi()
 
         val locationRequest = LocationRequest()
             .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
             .setInterval(10000)
+            .setFastestInterval(1000)
 
         untilDestroy {
             FusedLocationProviderClient(ctx).locations(locationRequest).consumeEach {

@@ -8,7 +8,11 @@ import com.google.android.gms.location.LocationAvailability
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
+import kotlinx.coroutines.experimental.Unconfined
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import kotlinx.coroutines.experimental.channels.consumeEach
+import kotlinx.coroutines.experimental.channels.produce
+import kotlin.coroutines.experimental.CoroutineContext
 
 sealed class LocationEvent {
     data class Result(val result: LocationResult) : LocationEvent()
@@ -18,10 +22,25 @@ sealed class LocationEvent {
 val LocationEvent.Result.lastLocation: Location
     get() = result.lastLocation
 
+private object Undefined
+
+fun <T> ReceiveChannel<T>.distinctUntilChanged(context: CoroutineContext = Unconfined): ReceiveChannel<T> =
+    produce(context) {
+        var last: Any? = Undefined
+
+        consumeEach {
+            if (it != last) {
+                send(it)
+                last = it
+            }
+        }
+    }
+
 @SuppressLint("MissingPermission")
 fun FusedLocationProviderClient.locations(req: LocationRequest): ReceiveChannel<LocationEvent> =
     CancellableRendezvous<LocationEvent>().also { chan ->
-        val cb = object : LocationCallback() {
+
+        val callback = object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult) {
                 chan.offer(LocationEvent.Result(p0))
             }
@@ -32,10 +51,10 @@ fun FusedLocationProviderClient.locations(req: LocationRequest): ReceiveChannel<
         }
 
         chan.cancellation = {
-            removeLocationUpdates(cb)
+            removeLocationUpdates(callback)
         }
 
-        requestLocationUpdates(req, cb, Looper.getMainLooper())
+        requestLocationUpdates(req, callback, Looper.getMainLooper())
     }
 
 fun Location.toGeoPoint(): GeoPoint =

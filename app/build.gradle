@@ -23,10 +23,19 @@ kotlin {
     }
 }
 
-ext.anko_version = '0.10.5'
-ext.gms_version = "15.0.1"
+ext {
+    anko_version = "0.10.5"
+    gms_version = "15.0.1"
+    okhttp_version = "3.10.0"
+}
 
 dependencies {
+    implementation "com.squareup.okhttp3:okhttp:$okhttp_version"
+    implementation "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
+
+    implementation 'com.squareup.retrofit2:retrofit:+'
+    implementation 'com.squareup.retrofit2:converter-moshi:+'
+
     implementation 'com.bluelinelabs:conductor:2.1.4'
     implementation "com.bluelinelabs:conductor-archlifecycle:0.1.1"
 
@@ -47,7 +56,6 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:0.22.5'
     implementation 'com.markodevcic.peko:peko:0.31'
     implementation 'com.jakewharton.timber:timber:4.7.0'
-    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
     implementation 'com.squareup.moshi:moshi:1.5.0'
 
     testImplementation 'junit:junit:4.12'
