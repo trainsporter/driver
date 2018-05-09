@@ -5,7 +5,7 @@ jobs:
     working_directory: ~/work
 
     docker:
-      - image: circleci/android:api-24-alpha
+      - image: alvrme/alpine-android:latest
 
     steps:
       - checkout
