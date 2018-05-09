@@ -5,7 +5,7 @@ jobs:
     working_directory: ~/work
 
     docker:
-      - image: alvrme/alpine-android:latest
+      - image: alvrme/alpine-android:android-26
 
     steps:
       - checkout
