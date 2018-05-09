@@ -11,14 +11,14 @@ jobs:
       - checkout
 
       - restore_cache:
-          key: cache-{{ checksum "build.gradle" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+          key: cache-{{ checksum "build.gradle" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "app/build.gradle" }}-{{ checksum ".circleci/config.yml" }}-{{ checksum "settings.gradle" }}
 
       - run: ./gradlew build
 
       - save_cache:
           paths:
             - ~/.gradle
-          key: cache-{{ checksum "build.gradle" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+          key: cache-{{ checksum "build.gradle" }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}-{{ checksum "app/build.gradle" }}-{{ checksum ".circleci/config.yml" }}-{{ checksum "settings.gradle" }}
 
       - store_test_results:
           path: build/test-results
