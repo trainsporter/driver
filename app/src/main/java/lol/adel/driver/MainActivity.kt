@@ -8,6 +8,7 @@ import android.view.View
 import android.view.View.generateViewId
 import android.view.ViewGroup
 import com.bluelinelabs.conductor.Conductor
+import com.bluelinelabs.conductor.Controller
 import com.bluelinelabs.conductor.Router
 import com.bluelinelabs.conductor.RouterTransaction
 import com.bluelinelabs.conductor.archlifecycle.LifecycleController
@@ -25,6 +26,13 @@ import java.util.*
 object Ids {
     val map = generateViewId()
 }
+
+fun controller(navigatorViewModel: NavigatorViewModel):Controller =
+    when(navigatorViewModel) {
+        NavigatorViewModel.Idle ->
+            TODO()
+        NavigatorViewModel.Map -> TODO()
+    }
 
 class MainActivity : AppCompatActivity() {
 
@@ -55,7 +63,6 @@ class MainActivity : AppCompatActivity() {
                 super.onBackPressed()
         }
 }
-
 
 class NoOrdersController : LifecycleController() {
 

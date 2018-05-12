@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
-import kotlinx.coroutines.experimental.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
 import okhttp3.Response
 import okhttp3.WebSocket
@@ -13,16 +12,9 @@ import okhttp3.WebSocketListener
 import org.jetbrains.anko.ctx
 import timber.log.Timber
 
-enum class OnlineStatus {
-    ONLINE,
-    OFFLINE,
-}
-
 class OnlineService : LifecycleService() {
 
     companion object {
-
-        val STATUS = ConflatedBroadcastChannel(OnlineStatus.OFFLINE)
 
         fun intent(ctx: Context): Intent =
             Intent(ctx, OnlineService::class.java)
@@ -88,12 +80,12 @@ class OnlineService : LifecycleService() {
             }
         }
 
-        STATUS.offer(OnlineStatus.ONLINE)
+        StateContainer.dispatch(Msg.GoOnline)
 
         onDestroy {
             Timber.d("onDestroy")
             socket.close(1000, null)
-            STATUS.offer(OnlineStatus.OFFLINE)
+            StateContainer.dispatch(Msg.GoOffline)
         }
     }
 }

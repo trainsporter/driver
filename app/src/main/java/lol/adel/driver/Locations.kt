@@ -10,6 +10,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import kotlinx.coroutines.experimental.Unconfined
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import kotlinx.coroutines.experimental.channels.RendezvousChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.channels.produce
 import kotlin.coroutines.experimental.CoroutineContext
@@ -36,7 +37,16 @@ fun <T> ReceiveChannel<T>.distinctUntilChanged(context: CoroutineContext = Uncon
         }
     }
 
-@SuppressLint("MissingPermission")
+class CancellableRendezvous<T> : RendezvousChannel<T>() {
+
+    var cancellation: (Throwable?) -> Unit = {}
+
+    override fun afterClose(cause: Throwable?) {
+        super.afterClose(cause)
+        cancellation(cause)
+    }
+}
+
 fun FusedLocationProviderClient.locations(req: LocationRequest): ReceiveChannel<LocationEvent> =
     CancellableRendezvous<LocationEvent>().also { chan ->
 
