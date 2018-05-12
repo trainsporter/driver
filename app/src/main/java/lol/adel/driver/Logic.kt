@@ -12,34 +12,36 @@ sealed class Msg {
     data class OrderAvailable(val order: Order) : Msg()
 }
 
-fun update(model: Model, msg: Msg): Model =
+sealed class Screen {
+    object Idle : Screen()
+    object Order : Screen()
+}
+
+sealed class Nav {
+    data class Push(val screen: Screen) : Nav()
+    object Pop : Nav()
+    data class ReplaceTop(val screen: Screen) : Nav()
+    object NoOp : Nav()
+    data class Reset(val screens: List<Screen>) : Nav()
+}
+
+fun init(): Pair<Model, Screen> =
+    Model.Offline to Screen.Idle
+
+fun update(model: Model, msg: Msg): Pair<Model, Nav> =
     when (msg) {
         Msg.GoOffline ->
-            Model.Offline
+            Model.Offline to Nav.Reset(listOf(Screen.Idle))
 
         Msg.GoOnline ->
-            Model.Idle
+            Model.Idle to Nav.NoOp
 
         is Msg.OrderAvailable ->
             when (model) {
                 Model.Offline ->
-                    model
+                    model to Nav.NoOp
 
                 Model.Idle, is Model.ActiveOrder ->
-                    Model.ActiveOrder(msg.order)
+                    Model.ActiveOrder(msg.order) to Nav.Reset(listOf(Screen.Order))
             }
-    }
-
-sealed class NavigatorViewModel {
-    object Idle : NavigatorViewModel()
-    object Map : NavigatorViewModel()
-}
-
-fun navigator(model: Model): NavigatorViewModel =
-    when (model) {
-        Model.Offline, Model.Idle ->
-            NavigatorViewModel.Idle
-
-        is Model.ActiveOrder ->
-            NavigatorViewModel.Map
     }

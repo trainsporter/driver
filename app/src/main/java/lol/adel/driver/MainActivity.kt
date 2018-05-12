@@ -2,36 +2,26 @@ package lol.adel.driver
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
 import android.view.View.generateViewId
-import android.view.ViewGroup
 import com.bluelinelabs.conductor.Conductor
 import com.bluelinelabs.conductor.Controller
 import com.bluelinelabs.conductor.Router
 import com.bluelinelabs.conductor.RouterTransaction
-import com.bluelinelabs.conductor.archlifecycle.LifecycleController
-import com.bluelinelabs.conductor.archlifecycle.LifecycleRestoreViewOnCreateController
-import com.google.android.gms.maps.MapView
+import com.bluelinelabs.conductor.changehandler.AutoTransitionChangeHandler
 import kotlinx.coroutines.experimental.channels.consumeEach
+import lol.adel.driver.screens.IdleController
+import lol.adel.driver.screens.OrderController
 import org.jetbrains.anko.act
-import org.jetbrains.anko.button
-import org.jetbrains.anko.ctx
 import org.jetbrains.anko.find
-import org.jetbrains.anko.verticalLayout
-import timber.log.Timber
-import java.util.*
 
 object Ids {
     val map = generateViewId()
 }
 
-fun controller(navigatorViewModel: NavigatorViewModel):Controller =
-    when(navigatorViewModel) {
-        NavigatorViewModel.Idle ->
-            TODO()
-        NavigatorViewModel.Map -> TODO()
+fun Screen.toController(): Controller =
+    when (this) {
+        Screen.Idle -> IdleController()
+        Screen.Order -> OrderController()
     }
 
 class MainActivity : AppCompatActivity() {
@@ -50,7 +40,28 @@ class MainActivity : AppCompatActivity() {
 
         router = Conductor.attachRouter(act, find(android.R.id.content), savedInstanceState)
         if (!router.hasRootController()) {
-            router.setRoot(RouterTransaction.with(NoOrdersController()))
+            router.setRoot(RouterTransaction.with(init().second.toController()))
+        }
+
+        untilDestroy {
+            StateContainer.navs.openSubscription().distinctUntilChanged().consumeEach { nav ->
+                when (nav) {
+                    is Nav.Push ->
+                        router.pushController(RouterTransaction.with(nav.screen.toController()))
+
+                    Nav.Pop ->
+                        router.popCurrentController()
+
+                    is Nav.ReplaceTop ->
+                        router.replaceTopController(RouterTransaction.with(nav.screen.toController()))
+
+                    Nav.NoOp ->
+                        Unit
+
+                    is Nav.Reset ->
+                        router.setBackstack(nav.screens.map { RouterTransaction.with(it.toController()) }, AutoTransitionChangeHandler())
+                }
+            }
         }
     }
 
@@ -61,83 +72,5 @@ class MainActivity : AppCompatActivity() {
 
             else ->
                 super.onBackPressed()
-        }
-}
-
-class NoOrdersController : LifecycleController() {
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup): View =
-        activitySync.run {
-            verticalLayout {
-                button {
-                    untilDestroy {
-                        OnlineService.STATUS.openSubscription().consumeEach {
-                            when (it) {
-                                OnlineStatus.ONLINE -> {
-                                    text = "Go Offline"
-
-                                    setOnClickListener {
-                                        stopService(OnlineService.intent(ctx))
-                                    }
-                                }
-
-                                OnlineStatus.OFFLINE -> {
-                                    text = "Go Online"
-
-                                    setOnClickListener {
-                                        untilDestroy {
-                                            requestLocationPermission()
-                                            if (hasLocationPermission()) {
-                                                startService(OnlineService.intent(ctx))
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }.lparams {
-                    gravity = Gravity.CENTER
-                }
-
-                button {
-                    text = "Make Order"
-
-                    setOnClickListener {
-                        untilDestroy {
-                            try {
-                                makeEndpoints(makeClient(), makeMoshi()).createOrder(genOrder(Random())).await()
-                            } catch (e: Exception) {
-                                Timber.e(e)
-                            }
-                        }
-                    }
-                }.lparams {
-                    gravity = Gravity.CENTER
-                }
-            }
-        }
-}
-
-class OrderController : LifecycleRestoreViewOnCreateController() {
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup,
-        savedViewState: Bundle?
-    ): View =
-        MapView(activity).also { mv ->
-            mv.id = Ids.map
-            mv.onCreate(savedViewState, lifecycle)
-
-            untilDestroy {
-                val map = mv.map()
-                map.uiSettings.isMyLocationButtonEnabled = false
-
-                activitySync.requestLocationPermission()
-                if (activitySync.hasLocationPermission()) {
-                    map.isMyLocationEnabled = true
-                }
-            }
         }
 }
