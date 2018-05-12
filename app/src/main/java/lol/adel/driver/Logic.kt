@@ -31,7 +31,13 @@ fun init(): Pair<Model, Screen> =
 fun update(model: Model, msg: Msg): Pair<Model, Nav> =
     when (msg) {
         Msg.GoOffline ->
-            Model.Offline to Nav.Reset(listOf(Screen.Idle))
+            when (model) {
+                Model.Offline, Model.Idle ->
+                    Model.Offline to Nav.NoOp
+
+                is Model.ActiveOrder ->
+                    Model.Offline to Nav.Reset(listOf(Screen.Idle))
+            }
 
         Msg.GoOnline ->
             Model.Idle to Nav.NoOp

@@ -2,6 +2,7 @@ package lol.adel.driver.screens
 
 import android.content.Context
 import android.support.v7.widget.SwitchCompat
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,54 +10,55 @@ import com.bluelinelabs.conductor.archlifecycle.LifecycleController
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.channels.map
 import lol.adel.driver.Model
-import lol.adel.driver.Msg
+import lol.adel.driver.OnlineService
 import lol.adel.driver.StateContainer
 import lol.adel.driver.activitySync
 import lol.adel.driver.distinctUntilChanged
+import lol.adel.driver.hasLocationPermission
+import lol.adel.driver.requestLocationPermission
 import lol.adel.driver.untilDestroy
 import org.jetbrains.anko.appcompat.v7.themedSwitchCompat
+import org.jetbrains.anko.ctx
+import org.jetbrains.anko.frameLayout
 import org.jetbrains.anko.sdk15.listeners.onCheckedChange
-import org.jetbrains.anko.textView
-import org.jetbrains.anko.verticalLayout
+import org.jetbrains.anko.wrapContent
 
-private class IdleViewHolder(
+class IdleViewHolder(
     val root: View,
     val switch: SwitchCompat
 )
 
-private fun Context.idleViewHolder(): IdleViewHolder {
+fun Context.idleViewHolder(): IdleViewHolder {
     lateinit var switch: SwitchCompat
 
-    val root = verticalLayout {
-
-        textView {
-            text = "Online"
-        }
-
+    val root = frameLayout {
         switch = themedSwitchCompat {
-            onCheckedChange { _, isChecked ->
-                StateContainer.dispatch(if (isChecked) Msg.GoOnline else Msg.GoOffline)
-            }
+            text = "Online"
+        }.lparams {
+            width = wrapContent
+            gravity = Gravity.CENTER
         }
     }
 
     return IdleViewHolder(root, switch)
 }
 
-private data class IdleViewModel(
+data class IdleViewModel(
     val online: Boolean
-)
-
-private fun IdleViewHolder.bind(vm: IdleViewModel) {
-    switch.isChecked = vm.online
+) {
+    companion object {
+        fun present(model: Model): IdleViewModel =
+            when (model) {
+                Model.Offline -> false
+                Model.Idle -> true
+                is Model.ActiveOrder -> error("exhaust")
+            }.let(::IdleViewModel)
+    }
 }
 
-private fun present(model: Model): IdleViewModel =
-    when (model) {
-        Model.Offline -> false
-        Model.Idle -> true
-        is Model.ActiveOrder -> error("exhaust")
-    }.let(::IdleViewModel)
+fun IdleViewHolder.bind(vm: IdleViewModel) {
+    switch.isChecked = vm.online
+}
 
 class IdleController : LifecycleController() {
 
@@ -65,11 +67,26 @@ class IdleController : LifecycleController() {
 
         untilDestroy {
             StateContainer.states.openSubscription()
-                .map { present(it) }
+                .map { IdleViewModel.present(it) }
                 .distinctUntilChanged()
                 .consumeEach {
                     vh.bind(it)
                 }
+        }
+
+        vh.switch.onCheckedChange { _, isChecked ->
+            activity?.run {
+                if (isChecked) {
+                    untilDestroy {
+                        requestLocationPermission()
+                        if (hasLocationPermission()) {
+                            startService(OnlineService.intent(ctx))
+                        }
+                    }
+                } else {
+                    stopService(OnlineService.intent(ctx))
+                }
+            }
         }
 
         return vh.root

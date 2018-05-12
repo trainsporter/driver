@@ -6,10 +6,7 @@ object StateContainer {
 
     @Volatile
     var state: Model = init().first
-        private set(value) {
-            field = value
-            states.offer(value)
-        }
+        private set
 
     val states = ConflatedBroadcastChannel(state)
     val navs = ConflatedBroadcastChannel<Nav>(Nav.NoOp)
@@ -19,6 +16,7 @@ object StateContainer {
 
         if (state != new) {
             state = new
+            states.offer(new)
         }
 
         navs.offer(nav)

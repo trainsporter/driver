@@ -58,8 +58,10 @@ class MainActivity : AppCompatActivity() {
                     Nav.NoOp ->
                         Unit
 
-                    is Nav.Reset ->
-                        router.setBackstack(nav.screens.map { RouterTransaction.with(it.toController()) }, AutoTransitionChangeHandler())
+                    is Nav.Reset -> {
+                        val txs = nav.screens.map { RouterTransaction.with(it.toController()) }
+                        router.setBackstack(txs, AutoTransitionChangeHandler())
+                    }
                 }
             }
         }

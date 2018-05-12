@@ -1,8 +1,13 @@
 package lol.adel.driver
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.arch.lifecycle.LifecycleService
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.support.v4.app.NotificationCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import kotlinx.coroutines.experimental.channels.consumeEach
@@ -10,7 +15,19 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import org.jetbrains.anko.ctx
+import org.jetbrains.anko.notificationManager
 import timber.log.Timber
+
+fun makeNotification(ctx: Context): Notification =
+    NotificationCompat.Builder(ctx, "chan")
+        .setContentTitle("Online")
+        .setSmallIcon(R.drawable.ic_drive_eta_black_24dp)
+        .build().also {
+            if (Build.VERSION.SDK_INT >= 26) {
+                val chan = NotificationChannel("chan", "foo", NotificationManager.IMPORTANCE_DEFAULT)
+                ctx.notificationManager.createNotificationChannel(chan)
+            }
+        }
 
 class OnlineService : LifecycleService() {
 
@@ -22,6 +39,8 @@ class OnlineService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
+
+        startForeground(1234, makeNotification(ctx))
 
         val client = makeClient()
 

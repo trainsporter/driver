@@ -25,7 +25,9 @@ val LocationEvent.Result.lastLocation: Location
 
 private object Undefined
 
-fun <T> ReceiveChannel<T>.distinctUntilChanged(context: CoroutineContext = Unconfined): ReceiveChannel<T> =
+fun <T> ReceiveChannel<T>.distinctUntilChanged(
+    context: CoroutineContext = Unconfined
+): ReceiveChannel<T> =
     produce(context) {
         var last: Any? = Undefined
 
@@ -37,18 +39,19 @@ fun <T> ReceiveChannel<T>.distinctUntilChanged(context: CoroutineContext = Uncon
         }
     }
 
-class CancellableRendezvous<T> : RendezvousChannel<T>() {
+class NotifyCloseChannel<T> : RendezvousChannel<T>() {
 
-    var cancellation: (Throwable?) -> Unit = {}
+    var onClose: (Throwable?) -> Unit = {}
 
     override fun afterClose(cause: Throwable?) {
         super.afterClose(cause)
-        cancellation(cause)
+        onClose(cause)
     }
 }
 
+@SuppressLint("MissingPermission")
 fun FusedLocationProviderClient.locations(req: LocationRequest): ReceiveChannel<LocationEvent> =
-    CancellableRendezvous<LocationEvent>().also { chan ->
+    NotifyCloseChannel<LocationEvent>().also { chan ->
 
         val callback = object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult) {
@@ -60,7 +63,7 @@ fun FusedLocationProviderClient.locations(req: LocationRequest): ReceiveChannel<
             }
         }
 
-        chan.cancellation = {
+        chan.onClose = {
             removeLocationUpdates(callback)
         }
 
