@@ -27,20 +27,20 @@ data class MapViewModel(
                     when (model.order.status) {
                         OrderStatus.unassigned ->
                             MapViewModel(
-                                pickup = model.order.pickup,
-                                dropoff = model.order.dropoff
+                                pickup = model.order.pickup.position,
+                                dropoff = model.order.dropoff.position
                             )
 
                         OrderStatus.assigned ->
                             MapViewModel(
-                                pickup = model.order.pickup,
+                                pickup = model.order.pickup.position,
                                 dropoff = null
                             )
 
                         OrderStatus.serving ->
                             MapViewModel(
                                 pickup = null,
-                                dropoff = model.order.dropoff
+                                dropoff = model.order.dropoff.position
                             )
 
                         OrderStatus.done, OrderStatus.cancelled ->

@@ -18,7 +18,6 @@ import okhttp3.WebSocketListener
 import org.jetbrains.anko.ctx
 import org.jetbrains.anko.notificationManager
 import timber.log.Timber
-import java.util.*
 
 fun makeNotification(ctx: Context): Notification =
     NotificationCompat.Builder(ctx, "chan")
@@ -44,9 +43,6 @@ class OnlineService : LifecycleService() {
 
         startForeground(1234, makeNotification(ctx))
 
-        val client = makeClient()
-        val moshi = makeMoshi()
-
         val listener = object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 Timber.d("socket open")
@@ -54,8 +50,9 @@ class OnlineService : LifecycleService() {
 
             override fun onMessage(webSocket: WebSocket, text: String) {
                 Timber.d("socket message $text")
+
                 try {
-                    moshi.fromJson<IncomingWsMessage>(text)
+                    Deps.moshi.fromJson<WsMessage>(text)
                 } catch (e: Exception) {
                     null
                 }?.let {
@@ -64,8 +61,8 @@ class OnlineService : LifecycleService() {
                             Timber.e("illegal operation")
 
                         WsOperation.order_available -> {
-                            moshi.adapter(Order::class.java).fromJsonValue(it.payload)?.let { order ->
-                                StateContainer.dispatch(Msg.OrderUpdate(order))
+                            Deps.moshi.fromJsonValue<Order>(it.payload)?.let {
+                                StateContainer.dispatch(Msg.OrderUpdate(it))
                             }
                         }
                     }
@@ -87,7 +84,7 @@ class OnlineService : LifecycleService() {
             }
         }
 
-        val socket = client.newWebSocket(wsRequest(), listener)
+        val socket = Deps.client.newWebSocket(wsRequest(), listener)
 
         val locationRequest = LocationRequest()
             .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -98,7 +95,7 @@ class OnlineService : LifecycleService() {
             delay(time = 1000)
 
             try {
-                makeEndpoints(client, moshi).createOrder(genOrder(Random())).await()
+                Deps.endpoints.createOrder(genOrder()).await()
             } catch (e: Exception) {
                 Timber.e(e)
                 stopSelf()
@@ -107,11 +104,10 @@ class OnlineService : LifecycleService() {
             FusedLocationProviderClient(ctx).locations(locationRequest).consumeEach {
                 when (it) {
                     is LocationEvent.Result -> {
-                        val msg = WsMessage(
-                            operation = WsOperation.position,
-                            payload = it.lastLocation.toGeoPoint()
-                        )
-                        val json = moshi.toJson(msg)
+
+                        val position = WsMessage.position(Deps.moshi, it.lastLocation.toGeoPoint())
+                        val json = Deps.moshi.toJson(position)
+
                         Timber.d("sending $json")
                         socket.send(json)
                     }

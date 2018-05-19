@@ -3,9 +3,6 @@ package lol.adel.driver
 import android.location.Location
 import com.google.android.gms.maps.model.LatLng
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
-import java.lang.reflect.ParameterizedType
-import java.util.*
 
 @Suppress("EnumEntryName")
 enum class WsOperation {
@@ -13,24 +10,18 @@ enum class WsOperation {
     order_available,
 }
 
-data class WsMessage<T>(
+data class WsMessage(
     val operation: WsOperation,
-    val payload: T
-)
-
-data class IncomingWsMessage(
-    val operation: WsOperation,
-    val payload: Map<String, Any?>
-)
-
-fun <T : Any> WsMessage<T>.type(): ParameterizedType =
-    Types.newParameterizedType(WsMessage::class.java, payload::class.java)
-
-fun <T : Any> Moshi.toJson(t: WsMessage<T>): String =
-    adapter<WsMessage<T>>(t.type()).toJson(t)
-
-inline fun <reified T> Moshi.fromJson(s: String): T? =
-    adapter<T>(T::class.java).fromJson(s)
+    val payload: Any?
+) {
+    companion object {
+        fun position(moshi: Moshi, geoPoint: GeoPoint): WsMessage =
+            WsMessage(
+                operation = WsOperation.position,
+                payload = moshi.toJsonValue(geoPoint)
+            )
+    }
+}
 
 data class GeoPoint(
     val latitude: Double,
@@ -82,28 +73,27 @@ fun OrderStatus.toButtonAction(): String? =
             null
     }
 
+data class GLocation(
+    val position: GeoPoint,
+    val address: String?
+)
+
 data class NewOrder(
-    val pickup: GeoPoint,
-    val dropoff: GeoPoint
+    val pickup: String,
+    val dropoff: String
 )
 
 data class Order(
     val id: String,
-    val pickup: GeoPoint,
-    val dropoff: GeoPoint,
+    val pickup: GLocation,
+    val dropoff: GLocation,
     val status: OrderStatus
 )
 
-fun genPoint(r: Random): GeoPoint =
-    GeoPoint(
-        latitude = (r.nextDouble() - 0.5) * 180,
-        longitude = (r.nextDouble() - 0.5) * 180
-    )
-
-fun genOrder(r: Random): NewOrder =
+fun genOrder(): NewOrder =
     NewOrder(
-        pickup = genPoint(r),
-        dropoff = genPoint(r)
+        pickup = "Четаева 27А",
+        dropoff = "Айвазовского 3 казань"
     )
 
 data class ChangeStatus(
