@@ -3,7 +3,11 @@ package lol.adel.driver.screens
 import android.annotation.SuppressLint
 import android.arch.lifecycle.Lifecycle
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.drawable.Drawable
+import android.location.Location
 import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
 import android.view.Gravity
@@ -14,25 +18,35 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.bluelinelabs.conductor.archlifecycle.LifecycleRestoreViewOnCreateController
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.BitmapDescriptorFactory.fromBitmap
+import com.google.android.gms.maps.model.LatLngBounds
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.channels.mapNotNull
 import lol.adel.driver.ChangeStatus
 import lol.adel.driver.Deps
+import lol.adel.driver.GeoPoint
 import lol.adel.driver.Ids
 import lol.adel.driver.Model
 import lol.adel.driver.Msg
 import lol.adel.driver.Order
+import lol.adel.driver.OrderStatus
+import lol.adel.driver.R
 import lol.adel.driver.StateContainer
 import lol.adel.driver.activitySync
-import lol.adel.driver.asAction
 import lol.adel.driver.await
 import lol.adel.driver.currentUserId
 import lol.adel.driver.dip
 import lol.adel.driver.distinctUntilChanged
 import lol.adel.driver.map
+import lol.adel.driver.marker
 import lol.adel.driver.next
 import lol.adel.driver.onCreate
+import lol.adel.driver.toButtonAction
+import lol.adel.driver.toLatLng
 import lol.adel.driver.untilDestroy
 import org.jetbrains.anko.appcompat.v7.tintedButton
 import org.jetbrains.anko.appcompat.v7.tintedTextView
@@ -133,12 +147,11 @@ data class OrderViewModel(val order: Order) {
 fun OrderViewHolder.bind(vm: OrderViewModel, lifecycle: Lifecycle) {
 
     textView.text = vm.order.toString()
+    button.text = vm.order.status.toButtonAction()
 
-    button.text = vm.order.status.asAction()
     button.onClick {
-        lifecycle.untilDestroy {
-            vm.order.status.next()?.let { status ->
-
+        vm.order.status.next()?.let { status ->
+            lifecycle.untilDestroy {
                 val body = ChangeStatus(
                     driver_id = currentUserId()!!,
                     status = status
@@ -154,6 +167,76 @@ fun OrderViewHolder.bind(vm: OrderViewModel, lifecycle: Lifecycle) {
         }
     }
 }
+
+data class MapViewModel(
+    val pickup: GeoPoint?,
+    val dropoff: GeoPoint?
+) {
+    companion object {
+        fun present(model: Model): MapViewModel? =
+            when (model) {
+                Model.Offline, Model.Idle ->
+                    null
+
+                is Model.ActiveOrder ->
+                    when (model.order.status) {
+                        OrderStatus.unassigned ->
+                            MapViewModel(
+                                pickup = model.order.pickup,
+                                dropoff = model.order.dropoff
+                            )
+
+                        OrderStatus.assigned ->
+                            MapViewModel(
+                                pickup = model.order.pickup,
+                                dropoff = null
+                            )
+
+                        OrderStatus.serving ->
+                            MapViewModel(
+                                pickup = null,
+                                dropoff = model.order.dropoff
+                            )
+
+                        OrderStatus.done, OrderStatus.cancelled ->
+                            null
+                    }
+            }
+    }
+}
+
+fun GoogleMap.bind(vm: MapViewModel, ctx: Context, lastLocation: Location) {
+    clear()
+
+    vm.pickup?.let {
+        addMarker(marker(
+            position = it.toLatLng(),
+            icon = fromBitmap(snapshot(ctx.drawableCompat(R.drawable.ic_local_shipping_black_24dp)))
+        ))
+    }
+
+    vm.dropoff?.let {
+        addMarker(marker(
+            position = it.toLatLng(),
+            icon = fromBitmap(snapshot(ctx.drawableCompat(R.drawable.ic_check_circle_black_24dp)))
+        ))
+    }
+
+    animateCamera(CameraUpdateFactory.newLatLngBounds(
+        LatLngBounds.Builder().apply {
+            include(lastLocation.toLatLng())
+            vm.pickup?.toLatLng()?.let { include(it) }
+            vm.dropoff?.toLatLng()?.let { include(it) }
+        }.build(),
+        getStatusBarHeight() * 2
+    ))
+}
+
+fun snapshot(d: Drawable): Bitmap =
+    Bitmap.createBitmap(d.intrinsicWidth, d.intrinsicHeight, Bitmap.Config.ARGB_8888).also {
+        d.setBounds(0, 0, d.intrinsicWidth, d.intrinsicHeight)
+        d.draw(Canvas(it))
+    }
 
 @SuppressLint("MissingPermission")
 class OrderController : LifecycleRestoreViewOnCreateController() {
@@ -175,11 +258,21 @@ class OrderController : LifecycleRestoreViewOnCreateController() {
                 }
         }
 
+        val ctx = activitySync
+        val fused = FusedLocationProviderClient(ctx)
+
         untilDestroy {
             val map = vh.map.map()
             map.isMyLocationEnabled = true
             map.setPadding(0, getStatusBarHeight(), 0, dip(OrderViewHolder.bottomSize()))
             map.uiSettings.isMyLocationButtonEnabled = true
+
+            StateContainer.states.openSubscription()
+                .mapNotNull { MapViewModel.present(it) }
+                .distinctUntilChanged()
+                .consumeEach {
+                    map.bind(it, ctx, fused.lastLocation.await())
+                }
         }
 
         return vh.root

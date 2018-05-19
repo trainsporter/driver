@@ -5,6 +5,7 @@ import android.arch.lifecycle.Lifecycle
 import android.os.Bundle
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlin.coroutines.experimental.suspendCoroutine
@@ -35,10 +36,11 @@ fun MapView.onCreate(savedInstanceState: Bundle?, lifecycle: Lifecycle) {
     lifecycle.addObserver(GenericLifecycleObserver { _, event -> onEvent(event) })
 }
 
-fun marker(position: LatLng, title: String? = null): MarkerOptions =
+fun marker(position: LatLng, title: String? = null, icon: BitmapDescriptor? = null): MarkerOptions =
     MarkerOptions()
         .position(position)
         .title(title)
+        .icon(icon)
 
 suspend fun MapView.map(): GoogleMap =
     suspendCoroutine { cont ->

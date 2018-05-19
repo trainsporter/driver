@@ -2,6 +2,7 @@ package lol.adel.driver.screens
 
 import android.content.Context
 import android.content.res.Resources
+import android.graphics.drawable.Drawable
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.SwitchCompat
 import android.view.Gravity
@@ -47,6 +48,9 @@ fun getStatusBarHeight(): Int {
 
 fun Context.colorCompat(c: Int): Int =
     ContextCompat.getColor(ctx, c)
+
+fun Context.drawableCompat(d: Int): Drawable =
+    ContextCompat.getDrawable(ctx, d)!!
 
 fun Context.idleViewHolder(): IdleViewHolder {
     lateinit var switch: SwitchCompat

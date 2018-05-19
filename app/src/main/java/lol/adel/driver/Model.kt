@@ -1,10 +1,13 @@
 package lol.adel.driver
 
+import android.location.Location
+import com.google.android.gms.maps.model.LatLng
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import java.lang.reflect.ParameterizedType
 import java.util.*
 
+@Suppress("EnumEntryName")
 enum class WsOperation {
     position,
     order_available,
@@ -34,6 +37,13 @@ data class GeoPoint(
     val longitude: Double
 )
 
+fun GeoPoint.toLatLng(): LatLng =
+    LatLng(latitude, longitude)
+
+fun Location.toLatLng():LatLng =
+    LatLng(latitude,longitude)
+
+@Suppress("EnumEntryName")
 enum class OrderStatus {
     unassigned,
     assigned,
@@ -57,7 +67,7 @@ fun OrderStatus.next(): OrderStatus? =
             null
     }
 
-fun OrderStatus.asAction(): String? =
+fun OrderStatus.toButtonAction(): String? =
     when (this) {
         OrderStatus.unassigned ->
             "Принять"
@@ -85,12 +95,7 @@ data class Order(
 )
 
 fun genPoint(r: Random): GeoPoint =
-    GeoPoint(latitude = r.nextDouble() % 90, longitude = r.nextDouble() % 90)
-
-inline fun <reified T : Enum<T>> genEnum(r: Random): T {
-    val constants = T::class.java.enumConstants
-    return constants[r.nextInt() % constants.size]
-}
+    GeoPoint(latitude = r.nextDouble() * 90, longitude = r.nextDouble() * 90)
 
 fun genOrder(r: Random): NewOrder =
     NewOrder(
