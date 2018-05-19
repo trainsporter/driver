@@ -48,6 +48,12 @@ fun update(model: Model, msg: Msg): Pair<Model, Nav> =
                     model to Nav.NoOp
 
                 Model.Idle, is Model.ActiveOrder ->
-                    Model.ActiveOrder(msg.order) to Nav.Reset(listOf(Screen.Order))
+                    when (msg.order.status) {
+                        OrderStatus.unassigned, OrderStatus.assigned, OrderStatus.serving ->
+                            Model.ActiveOrder(msg.order) to Nav.Reset(listOf(Screen.Order))
+
+                        OrderStatus.done, OrderStatus.cancelled ->
+                            Model.Idle to Nav.Reset(listOf(Screen.Idle))
+                    }
             }
     }
