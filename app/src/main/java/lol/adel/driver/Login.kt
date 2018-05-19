@@ -25,7 +25,7 @@ fun loginIntent(): Intent =
 fun currentUserId(): String? =
     when {
         BuildConfig.DEBUG ->
-            "test"
+            "101"
 
         else ->
             FirebaseAuth.getInstance().currentUser?.uid

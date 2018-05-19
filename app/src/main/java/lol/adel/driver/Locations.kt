@@ -3,6 +3,8 @@ package lol.adel.driver
 import android.annotation.SuppressLint
 import android.location.Location
 import android.os.Looper
+import android.view.View
+import android.view.ViewTreeObserver
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationAvailability
 import com.google.android.gms.location.LocationCallback
@@ -39,7 +41,7 @@ fun <T> ReceiveChannel<T>.distinctUntilChanged(
         }
     }
 
-class NotifyCloseChannel<T> : RendezvousChannel<T>() {
+class OnCloseChannel<T> : RendezvousChannel<T>() {
 
     var onClose: (Throwable?) -> Unit = {}
 
@@ -51,7 +53,7 @@ class NotifyCloseChannel<T> : RendezvousChannel<T>() {
 
 @SuppressLint("MissingPermission")
 fun FusedLocationProviderClient.locations(req: LocationRequest): ReceiveChannel<LocationEvent> =
-    NotifyCloseChannel<LocationEvent>().also { chan ->
+    OnCloseChannel<LocationEvent>().also { chan ->
 
         val callback = object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult) {
@@ -72,3 +74,18 @@ fun FusedLocationProviderClient.locations(req: LocationRequest): ReceiveChannel<
 
 fun Location.toGeoPoint(): GeoPoint =
     GeoPoint(latitude = latitude, longitude = longitude)
+
+fun View.preDraws(): ReceiveChannel<View> =
+    OnCloseChannel<View>().also { chan ->
+
+        val cb = ViewTreeObserver.OnPreDrawListener {
+            chan.offer(this)
+            true
+        }
+
+        chan.onClose = {
+            viewTreeObserver.removeOnPreDrawListener(cb)
+        }
+
+        viewTreeObserver.addOnPreDrawListener(cb)
+    }

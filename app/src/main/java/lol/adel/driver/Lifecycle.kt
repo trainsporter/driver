@@ -16,10 +16,13 @@ inline fun Lifecycle.onDestroy(crossinline f: () -> Unit): Unit =
 inline fun LifecycleOwner.onDestroy(crossinline f: () -> Unit): Unit =
     lifecycle.onDestroy(f)
 
-fun LifecycleOwner.untilDestroy(block: suspend CoroutineScope.() -> Unit) {
+fun Lifecycle.untilDestroy(block: suspend CoroutineScope.() -> Unit) {
     val job = launch(context = kotlinx.coroutines.experimental.android.UI, block = block)
 
     onDestroy {
         job.cancel()
     }
 }
+
+fun LifecycleOwner.untilDestroy(block: suspend CoroutineScope.() -> Unit): Unit =
+    lifecycle.untilDestroy(block)

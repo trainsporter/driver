@@ -11,12 +11,14 @@ import android.support.v4.app.NotificationCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import kotlinx.coroutines.experimental.channels.consumeEach
+import kotlinx.coroutines.experimental.delay
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import org.jetbrains.anko.ctx
 import org.jetbrains.anko.notificationManager
 import timber.log.Timber
+import java.util.*
 
 fun makeNotification(ctx: Context): Notification =
     NotificationCompat.Builder(ctx, "chan")
@@ -43,6 +45,7 @@ class OnlineService : LifecycleService() {
         startForeground(1234, makeNotification(ctx))
 
         val client = makeClient()
+        val moshi = makeMoshi()
 
         val listener = object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
@@ -51,6 +54,22 @@ class OnlineService : LifecycleService() {
 
             override fun onMessage(webSocket: WebSocket, text: String) {
                 Timber.d("socket message $text")
+                try {
+                    moshi.fromJson<IncomingWsMessage>(text)
+                } catch (e: Exception) {
+                    null
+                }?.let {
+                    when (it.operation) {
+                        WsOperation.position ->
+                            Timber.e("illegal operation")
+
+                        WsOperation.order_available -> {
+                            moshi.adapter(Order::class.java).fromJsonValue(it.payload)?.let { order ->
+                                StateContainer.dispatch(Msg.OrderUpdate(order))
+                            }
+                        }
+                    }
+                }
             }
 
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String?) {
@@ -69,7 +88,6 @@ class OnlineService : LifecycleService() {
         }
 
         val socket = client.newWebSocket(wsRequest(), listener)
-        val moshi = makeMoshi()
 
         val locationRequest = LocationRequest()
             .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -77,6 +95,9 @@ class OnlineService : LifecycleService() {
             .setFastestInterval(1000)
 
         untilDestroy {
+            delay(1000)
+            makeEndpoints(client, moshi).createOrder(genOrder(Random())).await()
+
             FusedLocationProviderClient(ctx).locations(locationRequest).consumeEach {
                 when (it) {
                     is LocationEvent.Result -> {

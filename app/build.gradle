@@ -33,6 +33,8 @@ ext {
 }
 
 dependencies {
+    implementation 'com.android.support:appcompat-v7:27.1.0'
+
     implementation "com.squareup.okhttp3:okhttp:$okhttp_version"
     implementation "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
 
@@ -46,6 +48,7 @@ dependencies {
     implementation "org.jetbrains.anko:anko-sdk15:$anko_version"
     implementation "org.jetbrains.anko:anko-sdk15-listeners:$anko_version"
     implementation "org.jetbrains.anko:anko-appcompat-v7:$anko_version"
+    implementation "org.jetbrains.anko:anko-design:$anko_version"
 
     implementation "com.google.android.gms:play-services-maps:$gms_version"
     implementation "com.google.android.gms:play-services-location:$gms_version"
@@ -54,12 +57,11 @@ dependencies {
     implementation "com.firebaseui:firebase-ui-auth:3.3.1"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.android.support:appcompat-v7:27.1.0'
 
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:0.22.5'
     implementation 'com.markodevcic.peko:peko:0.31'
     implementation 'com.jakewharton.timber:timber:4.7.0'
-    implementation 'com.squareup.moshi:moshi:1.5.0'
+    implementation 'com.squareup.moshi:moshi:1.6.0'
 
     testImplementation 'junit:junit:4.12'
 

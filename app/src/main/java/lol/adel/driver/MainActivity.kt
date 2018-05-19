@@ -16,6 +16,8 @@ import org.jetbrains.anko.find
 
 object Ids {
     val map = generateViewId()
+    val mapParent = generateViewId()
+    val mapPanel = generateViewId()
 }
 
 fun Screen.toController(): Controller =

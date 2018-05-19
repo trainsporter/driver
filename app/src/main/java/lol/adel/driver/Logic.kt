@@ -9,7 +9,7 @@ sealed class Model {
 sealed class Msg {
     object GoOffline : Msg()
     object GoOnline : Msg()
-    data class OrderAvailable(val order: Order) : Msg()
+    data class OrderUpdate(val order: Order) : Msg()
 }
 
 sealed class Screen {
@@ -42,7 +42,7 @@ fun update(model: Model, msg: Msg): Pair<Model, Nav> =
         Msg.GoOnline ->
             Model.Idle to Nav.NoOp
 
-        is Msg.OrderAvailable ->
+        is Msg.OrderUpdate ->
             when (model) {
                 Model.Offline ->
                     model to Nav.NoOp

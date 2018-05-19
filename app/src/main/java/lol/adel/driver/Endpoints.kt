@@ -11,20 +11,21 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Path
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 interface Endpoints {
 
-    @POST("/order")
+    @POST("/orders")
     fun createOrder(@Body b: NewOrder): Call<Order>
 
-    @PUT("/orderstatus")
-    fun changeStatus(@Body b: ChangeStatus): Call<Order>
+    @PUT("/orders/{id}/status")
+    fun changeStatus(@Path("id") orderId: String, @Body body: ChangeStatus): Call<Order>
 }
 
 val BASE_URL = HttpUrl.parse("https://trainsporter-api-1.herokuapp.com")!!
-val LOGGING = HttpLoggingInterceptor { Timber.d(it) }.setLevel(HttpLoggingInterceptor.Level.BASIC)!!
+val LOGGING = HttpLoggingInterceptor { Timber.d(it) }.setLevel(HttpLoggingInterceptor.Level.BODY)!!
 
 fun makeClient(): OkHttpClient =
     OkHttpClient.Builder()

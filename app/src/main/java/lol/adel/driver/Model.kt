@@ -15,11 +15,19 @@ data class WsMessage<T>(
     val payload: T
 )
 
+data class IncomingWsMessage(
+    val operation: WsOperation,
+    val payload: Map<String, Any?>
+)
+
 fun <T : Any> WsMessage<T>.type(): ParameterizedType =
     Types.newParameterizedType(WsMessage::class.java, payload::class.java)
 
 fun <T : Any> Moshi.toJson(t: WsMessage<T>): String =
     adapter<WsMessage<T>>(t.type()).toJson(t)
+
+inline fun <reified T> Moshi.fromJson(s: String): T? =
+    adapter<T>(T::class.java).fromJson(s)
 
 data class GeoPoint(
     val latitude: Double,
@@ -29,7 +37,40 @@ data class GeoPoint(
 enum class OrderStatus {
     unassigned,
     assigned,
+    serving,
+    done,
+    cancelled,
 }
+
+fun OrderStatus.next(): OrderStatus? =
+    when (this) {
+        OrderStatus.unassigned ->
+            OrderStatus.assigned
+
+        OrderStatus.assigned ->
+            OrderStatus.serving
+
+        OrderStatus.serving ->
+            OrderStatus.done
+
+        OrderStatus.done, OrderStatus.cancelled ->
+            null
+    }
+
+fun OrderStatus.asAction(): String? =
+    when (this) {
+        OrderStatus.unassigned ->
+            "Принять"
+
+        OrderStatus.assigned ->
+            "Загрузил"
+
+        OrderStatus.serving ->
+            "Отгрузил"
+
+        OrderStatus.done, OrderStatus.cancelled ->
+            null
+    }
 
 data class NewOrder(
     val pickup: GeoPoint,
@@ -58,7 +99,6 @@ fun genOrder(r: Random): NewOrder =
     )
 
 data class ChangeStatus(
-    val order_id: String,
     val driver_id: String,
     val status: OrderStatus
 )
