@@ -95,7 +95,10 @@ data class Order(
 )
 
 fun genPoint(r: Random): GeoPoint =
-    GeoPoint(latitude = r.nextDouble() * 90, longitude = r.nextDouble() * 90)
+    GeoPoint(
+        latitude = (r.nextDouble() - 0.5) * 180,
+        longitude = (r.nextDouble() - 0.5) * 180
+    )
 
 fun genOrder(r: Random): NewOrder =
     NewOrder(

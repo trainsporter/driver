@@ -95,8 +95,14 @@ class OnlineService : LifecycleService() {
             .setFastestInterval(1000)
 
         untilDestroy {
-            delay(1000)
-            makeEndpoints(client, moshi).createOrder(genOrder(Random())).await()
+            delay(time = 1000)
+
+            try {
+                makeEndpoints(client, moshi).createOrder(genOrder(Random())).await()
+            } catch (e: Exception) {
+                Timber.e(e)
+                stopSelf()
+            }
 
             FusedLocationProviderClient(ctx).locations(locationRequest).consumeEach {
                 when (it) {
