@@ -40,8 +40,8 @@ data class GeoPoint(
 fun GeoPoint.toLatLng(): LatLng =
     LatLng(latitude, longitude)
 
-fun Location.toLatLng():LatLng =
-    LatLng(latitude,longitude)
+fun Location.toLatLng(): LatLng =
+    LatLng(latitude, longitude)
 
 @Suppress("EnumEntryName")
 enum class OrderStatus {
@@ -70,7 +70,7 @@ fun OrderStatus.next(): OrderStatus? =
 fun OrderStatus.toButtonAction(): String? =
     when (this) {
         OrderStatus.unassigned ->
-            "Принять"
+            "Беру"
 
         OrderStatus.assigned ->
             "Загрузил"

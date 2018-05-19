@@ -131,7 +131,10 @@ fun Context.orderViewHolder(): OrderViewHolder {
     )
 }
 
-data class OrderViewModel(val order: Order) {
+data class OrderViewModel(
+    val order: Order,
+    val text: String?
+) {
     companion object {
         fun present(model: Model): OrderViewModel? =
             when (model) {
@@ -139,14 +142,26 @@ data class OrderViewModel(val order: Order) {
                     null
 
                 is Model.ActiveOrder ->
-                    OrderViewModel(model.order)
+                    OrderViewModel(
+                        order = model.order,
+                        text = when (model.order.status) {
+                            OrderStatus.unassigned ->
+                                "Новый заказ\n${model.order}"
+
+                            OrderStatus.assigned, OrderStatus.serving ->
+                                "Активный заказ\n${model.order}"
+
+                            OrderStatus.done, OrderStatus.cancelled ->
+                                null
+                        }
+                    )
             }
     }
 }
 
 fun OrderViewHolder.bind(vm: OrderViewModel, lifecycle: Lifecycle) {
 
-    textView.text = vm.order.toString()
+    textView.text = vm.text
     button.text = vm.order.status.toButtonAction()
 
     button.onClick {
