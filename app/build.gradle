@@ -17,6 +17,21 @@ android {
 
         vectorDrawables.useSupportLibrary = true
     }
+
+    signingConfigs {
+        release {
+            storeFile file("release.keystore")
+            storePassword "e8cX%86uWzn^"
+            keyAlias "key0"
+            keyPassword "DE&f6NGPHZ3f"
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
 }
 
 kotlin {
