@@ -137,10 +137,10 @@ data class OrderViewModel(
                         order = model.order,
                         text = when (model.order.status) {
                             OrderStatus.unassigned ->
-                                "Новый заказ\n${model.order}"
+                                "New Order\n${model.order}"
 
                             OrderStatus.assigned, OrderStatus.serving ->
-                                "Активный заказ\n${model.order}"
+                                "Active Order\n${model.order}"
 
                             OrderStatus.done, OrderStatus.cancelled ->
                                 null

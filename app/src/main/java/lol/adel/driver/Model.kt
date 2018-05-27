@@ -1,7 +1,5 @@
 package lol.adel.driver
 
-import android.location.Location
-import com.google.android.gms.maps.model.LatLng
 import com.squareup.moshi.Moshi
 
 @Suppress("EnumEntryName")
@@ -27,12 +25,6 @@ data class GeoPoint(
     val latitude: Double,
     val longitude: Double
 )
-
-fun GeoPoint.toLatLng(): LatLng =
-    LatLng(latitude, longitude)
-
-fun Location.toLatLng(): LatLng =
-    LatLng(latitude, longitude)
 
 @Suppress("EnumEntryName")
 enum class OrderStatus {
@@ -61,13 +53,13 @@ fun OrderStatus.next(): OrderStatus? =
 fun OrderStatus.toButtonAction(): String? =
     when (this) {
         OrderStatus.unassigned ->
-            "Беру"
+            "I take it!"
 
         OrderStatus.assigned ->
-            "Загрузил"
+            "Picked up"
 
         OrderStatus.serving ->
-            "Отгрузил"
+            "Dropped off"
 
         OrderStatus.done, OrderStatus.cancelled ->
             null

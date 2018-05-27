@@ -4,7 +4,7 @@ import android.content.Context
 import android.location.Location
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.BitmapDescriptorFactory.fromBitmap
 import com.google.android.gms.maps.model.LatLngBounds
 import lol.adel.driver.GeoPoint
 import lol.adel.driver.Model
@@ -56,14 +56,14 @@ fun GoogleMap.bind(vm: MapViewModel, ctx: Context, lastLocation: Location) {
     vm.pickup?.let {
         addMarker(marker(
             position = it.toLatLng(),
-            icon = BitmapDescriptorFactory.fromBitmap(snapshot(ctx.drawableCompat(R.drawable.ic_local_shipping_black_24dp)))
+            icon = fromBitmap(snapshot(ctx.drawableCompat(R.drawable.ic_local_shipping_black_24dp)))
         ))
     }
 
     vm.dropoff?.let {
         addMarker(marker(
             position = it.toLatLng(),
-            icon = BitmapDescriptorFactory.fromBitmap(snapshot(ctx.drawableCompat(R.drawable.ic_check_circle_black_24dp)))
+            icon = fromBitmap(snapshot(ctx.drawableCompat(R.drawable.ic_check_circle_black_24dp)))
         ))
     }
 
