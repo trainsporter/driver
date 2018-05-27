@@ -2,29 +2,15 @@ package lol.adel.driver
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.view.View.generateViewId
 import com.bluelinelabs.conductor.Conductor
-import com.bluelinelabs.conductor.Controller
 import com.bluelinelabs.conductor.Router
 import com.bluelinelabs.conductor.RouterTransaction
 import com.bluelinelabs.conductor.changehandler.AutoTransitionChangeHandler
 import kotlinx.coroutines.experimental.channels.consumeEach
-import lol.adel.driver.screens.IdleController
-import lol.adel.driver.screens.OrderController
+import lol.adel.driver.help.distinctUntilChanged
+import lol.adel.driver.help.untilDestroy
 import org.jetbrains.anko.act
 import org.jetbrains.anko.find
-
-object Ids {
-    val map = generateViewId()
-    val mapParent = generateViewId()
-    val mapPanel = generateViewId()
-}
-
-fun Screen.toController(): Controller =
-    when (this) {
-        Screen.Idle -> IdleController()
-        Screen.Order -> OrderController()
-    }
 
 class MainActivity : AppCompatActivity() {
 

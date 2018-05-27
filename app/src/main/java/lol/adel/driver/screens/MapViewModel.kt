@@ -10,8 +10,9 @@ import lol.adel.driver.GeoPoint
 import lol.adel.driver.Model
 import lol.adel.driver.OrderStatus
 import lol.adel.driver.R
-import lol.adel.driver.marker
-import lol.adel.driver.toLatLng
+import lol.adel.driver.help.getStatusBarHeight
+import lol.adel.driver.help.marker
+import lol.adel.driver.help.toLatLng
 
 data class MapViewModel(
     val pickup: GeoPoint?,

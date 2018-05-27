@@ -1,6 +1,7 @@
 package lol.adel.driver
 
 import com.squareup.moshi.Moshi
+import lol.adel.driver.help.toJsonValue
 
 @Suppress("EnumEntryName")
 enum class WsOperation {
