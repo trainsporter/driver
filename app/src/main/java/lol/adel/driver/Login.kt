@@ -2,7 +2,6 @@ package lol.adel.driver
 
 import android.content.Intent
 import com.firebase.ui.auth.AuthUI
-import com.google.firebase.auth.FirebaseAuth
 
 fun loginIntent(): Intent =
     AuthUI.getInstance()
@@ -23,10 +22,4 @@ fun loginIntent(): Intent =
         .build()
 
 fun currentUserId(): String? =
-    when {
-        BuildConfig.DEBUG ->
-            "101"
-
-        else ->
-            FirebaseAuth.getInstance().currentUser?.uid
-    }
+    "101"
