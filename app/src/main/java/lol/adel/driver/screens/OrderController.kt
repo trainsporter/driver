@@ -123,6 +123,14 @@ fun Context.orderViewHolder(): OrderViewHolder {
     )
 }
 
+fun Order.orderAsString(): String =
+    """
+        Order #${id}
+        From: ${pickup.address}
+        To: ${dropoff.address}
+        Status: $status
+    """.trimIndent()
+
 data class OrderViewModel(
     val order: Order,
     val text: String?
@@ -138,10 +146,10 @@ data class OrderViewModel(
                         order = model.order,
                         text = when (model.order.status) {
                             OrderStatus.unassigned ->
-                                "New Order\n${model.order}"
+                                "New Order\n${model.order.orderAsString()}"
 
                             OrderStatus.assigned, OrderStatus.serving ->
-                                "Active Order\n${model.order}"
+                                "Active Order\n${model.order.orderAsString()}"
 
                             OrderStatus.done, OrderStatus.cancelled ->
                                 null
