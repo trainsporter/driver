@@ -11,9 +11,7 @@ import android.support.v4.app.NotificationCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import kotlinx.coroutines.experimental.channels.consumeEach
-import kotlinx.coroutines.experimental.delay
 import lol.adel.driver.help.LocationEvent
-import lol.adel.driver.help.await
 import lol.adel.driver.help.fromJson
 import lol.adel.driver.help.fromJsonValue
 import lol.adel.driver.help.lastLocation
@@ -102,15 +100,6 @@ class OnlineService : LifecycleService() {
             .setFastestInterval(1000)
 
         untilDestroy {
-            delay(time = 1000)
-
-            try {
-                Deps.endpoints.createOrder(genOrder()).await()
-            } catch (e: Exception) {
-                Timber.e(e)
-                stopSelf()
-            }
-
             FusedLocationProviderClient(ctx).locations(locationRequest).consumeEach {
                 when (it) {
                     is LocationEvent.Result -> {

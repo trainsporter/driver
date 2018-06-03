@@ -17,9 +17,6 @@ import java.util.concurrent.TimeUnit
 
 interface Endpoints {
 
-    @POST("/orders")
-    fun createOrder(@Body b: NewOrder): Call<Order>
-
     @PUT("/orders/{id}/status")
     fun changeStatus(@Path("id") orderId: String, @Body body: ChangeStatus): Call<Order>
 }

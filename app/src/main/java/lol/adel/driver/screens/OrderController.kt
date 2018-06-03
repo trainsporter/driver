@@ -213,8 +213,10 @@ class OrderController : LifecycleRestoreViewOnCreateController() {
             StateContainer.states.openSubscription()
                 .mapNotNull { MapViewModel.present(it) }
                 .distinctUntilChanged()
-                .consumeEach {
-                    map.bind(it, ctx, fused.lastLocation.await())
+                .consumeEach { vm ->
+                    fused.lastLocation.await()?.let {
+                        map.bind(vm, ctx, it)
+                    }
                 }
         }
 
