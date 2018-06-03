@@ -51,7 +51,10 @@ data class MapViewModel(
     }
 }
 
-fun GoogleMap.bind(vm: MapViewModel, ctx: Context, lastLocation: Location) {
+inline fun latLngBounds(f: LatLngBounds.Builder.() -> Unit): LatLngBounds =
+    LatLngBounds.Builder().apply(f).build()
+
+fun GoogleMap.bind(vm: MapViewModel, ctx: Context, lastLocation: Location?) {
     clear()
 
     vm.pickup?.let {
@@ -69,11 +72,11 @@ fun GoogleMap.bind(vm: MapViewModel, ctx: Context, lastLocation: Location) {
     }
 
     animateCamera(CameraUpdateFactory.newLatLngBounds(
-        LatLngBounds.Builder().apply {
-            include(lastLocation.toLatLng())
+        latLngBounds {
+            lastLocation?.toLatLng()?.let { include(it) }
             vm.pickup?.toLatLng()?.let { include(it) }
             vm.dropoff?.toLatLng()?.let { include(it) }
-        }.build(),
+        },
         getStatusBarHeight() * 2
     ))
 }
