@@ -2,6 +2,7 @@ package lol.adel.driver
 
 import android.content.Intent
 import com.firebase.ui.auth.AuthUI
+import java.util.UUID
 
 fun loginIntent(): Intent =
     AuthUI.getInstance()
@@ -21,5 +22,7 @@ fun loginIntent(): Intent =
         ))
         .build()
 
+private val id by lazy { UUID.randomUUID().toString() }
+
 fun currentUserId(): String? =
-    "101"
+    id
