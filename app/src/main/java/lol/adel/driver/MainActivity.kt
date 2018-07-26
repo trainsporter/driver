@@ -19,13 +19,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (currentUserId() == null) {
-            startActivityForResult(
-                loginIntent(),
-                1234
-            )
-        }
-
         router = Conductor.attachRouter(act, find(android.R.id.content), savedInstanceState)
         if (!router.hasRootController()) {
             router.setRoot(RouterTransaction.with(init().second.toController()))

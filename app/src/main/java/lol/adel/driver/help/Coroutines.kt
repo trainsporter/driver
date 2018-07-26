@@ -23,7 +23,7 @@ suspend fun <T> Task<T>.await(): T =
 suspend fun <T> Call<T>.await(): T =
     suspendCancellableCoroutine { cont ->
 
-        cont.invokeOnCompletion {
+        cont.invokeOnCancellation {
             if (cont.isCancelled) {
                 try {
                     cancel()
