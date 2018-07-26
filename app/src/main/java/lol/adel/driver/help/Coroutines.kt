@@ -20,16 +20,14 @@ suspend fun <T> Task<T>.await(): T =
         }
     }
 
-suspend fun <T> Call<T>.await(): T =
+suspend fun <T> retrofit2.Call<T>.await(): T =
     suspendCancellableCoroutine { cont ->
 
         cont.invokeOnCancellation {
-            if (cont.isCancelled) {
-                try {
-                    cancel()
-                } catch (ex: Throwable) {
-                    //Ignore cancel exception
-                }
+            try {
+                cancel()
+            } catch (ex: Throwable) {
+                // ignoring
             }
         }
 
@@ -47,12 +45,6 @@ suspend fun <T> Call<T>.await(): T =
                 }
 
             override fun onFailure(call: Call<T>, t: Throwable): Unit =
-                when {
-                    cont.isCancelled ->
-                        Unit
-
-                    else ->
-                        cont.resumeWithException(t)
-                }
+                cont.resumeWithException(t)
         })
     }

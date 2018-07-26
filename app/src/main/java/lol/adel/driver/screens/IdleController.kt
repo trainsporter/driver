@@ -20,7 +20,7 @@ import lol.adel.driver.help.distinctUntilChanged
 import lol.adel.driver.help.getStatusBarHeight
 import lol.adel.driver.help.hasLocationPermission
 import lol.adel.driver.help.requestLocationPermission
-import lol.adel.driver.help.untilDestroy
+import lol.adel.driver.help.launchUntilDestroy
 import org.jetbrains.anko.appcompat.v7.themedSwitchCompat
 import org.jetbrains.anko.appcompat.v7.themedToolbar
 import org.jetbrains.anko.backgroundColor
@@ -90,7 +90,7 @@ class IdleController : LifecycleController() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup): View {
         val vh = activitySync.idleViewHolder()
 
-        untilDestroy {
+        launchUntilDestroy {
             StateContainer.states.openSubscription()
                 .map { IdleViewModel.present(it) }
                 .distinctUntilChanged()
@@ -102,7 +102,7 @@ class IdleController : LifecycleController() {
         vh.switch.onCheckedChange { _, isChecked ->
             activity?.run {
                 if (isChecked) {
-                    untilDestroy {
+                    launchUntilDestroy {
                         requestLocationPermission()
                         if (hasLocationPermission()) {
                             startService(OnlineService.intent(ctx))

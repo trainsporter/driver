@@ -8,7 +8,7 @@ import com.bluelinelabs.conductor.RouterTransaction
 import com.bluelinelabs.conductor.changehandler.AutoTransitionChangeHandler
 import kotlinx.coroutines.experimental.channels.consumeEach
 import lol.adel.driver.help.distinctUntilChanged
-import lol.adel.driver.help.untilDestroy
+import lol.adel.driver.help.launchUntilDestroy
 import org.jetbrains.anko.act
 import org.jetbrains.anko.find
 
@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
             router.setRoot(RouterTransaction.with(init().second.toController()))
         }
 
-        untilDestroy {
+        launchUntilDestroy {
             StateContainer.navs.openSubscription().distinctUntilChanged().consumeEach { nav ->
                 when (nav) {
                     is Nav.Push ->

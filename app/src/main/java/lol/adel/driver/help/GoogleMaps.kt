@@ -42,7 +42,7 @@ fun marker(position: LatLng, title: String? = null, icon: BitmapDescriptor? = nu
         .title(title)
         .icon(icon)
 
-suspend fun MapView.map(): GoogleMap =
+suspend fun MapView.awaitMap(): GoogleMap =
     suspendCoroutine { cont ->
         getMapAsync {
             cont.resume(it)

@@ -15,11 +15,11 @@ import lol.adel.driver.help.LocationEvent
 import lol.adel.driver.help.fromJson
 import lol.adel.driver.help.fromJsonValue
 import lol.adel.driver.help.lastLocation
+import lol.adel.driver.help.launchUntilDestroy
 import lol.adel.driver.help.locations
 import lol.adel.driver.help.onDestroy
 import lol.adel.driver.help.toGeoPoint
 import lol.adel.driver.help.toJson
-import lol.adel.driver.help.untilDestroy
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
@@ -99,7 +99,7 @@ class OnlineService : LifecycleService() {
             .setInterval(10000)
             .setFastestInterval(1000)
 
-        untilDestroy {
+        launchUntilDestroy {
             FusedLocationProviderClient(ctx).locations(locationRequest).consumeEach {
                 when (it) {
                     is LocationEvent.Result -> {

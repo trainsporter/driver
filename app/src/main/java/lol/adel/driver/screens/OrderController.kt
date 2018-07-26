@@ -32,12 +32,12 @@ import lol.adel.driver.StateContainer
 import lol.adel.driver.currentUserId
 import lol.adel.driver.help.activitySync
 import lol.adel.driver.help.await
+import lol.adel.driver.help.awaitMap
 import lol.adel.driver.help.dip
 import lol.adel.driver.help.distinctUntilChanged
 import lol.adel.driver.help.getStatusBarHeight
-import lol.adel.driver.help.map
+import lol.adel.driver.help.launchUntilDestroy
 import lol.adel.driver.help.onCreate
-import lol.adel.driver.help.untilDestroy
 import lol.adel.driver.next
 import lol.adel.driver.toButtonAction
 import org.jetbrains.anko.appcompat.v7.tintedButton
@@ -166,7 +166,7 @@ fun OrderViewHolder.bind(vm: OrderViewModel, lifecycle: Lifecycle) {
 
     button.onClick {
         vm.order.status.next()?.let { status ->
-            lifecycle.untilDestroy {
+            lifecycle.launchUntilDestroy {
                 val body = ChangeStatus(
                     driver_id = currentUserId()!!,
                     status = status
@@ -200,7 +200,7 @@ class OrderController : LifecycleRestoreViewOnCreateController() {
         val vh = activitySync.orderViewHolder()
         vh.map.onCreate(savedViewState, lifecycle)
 
-        untilDestroy {
+        launchUntilDestroy {
             StateContainer.states.openSubscription()
                 .mapNotNull { OrderViewModel.present(it) }
                 .distinctUntilChanged()
@@ -212,8 +212,8 @@ class OrderController : LifecycleRestoreViewOnCreateController() {
         val ctx = activitySync
         val fused = FusedLocationProviderClient(ctx)
 
-        untilDestroy {
-            val map = vh.map.map()
+        launchUntilDestroy {
+            val map = vh.map.awaitMap()
             map.isMyLocationEnabled = true
             map.setPadding(0, getStatusBarHeight(), 0, dip(OrderViewHolder.bottomSize()))
             map.uiSettings.isMyLocationButtonEnabled = true
