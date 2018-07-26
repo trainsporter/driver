@@ -1,14 +1,14 @@
 package lol.adel.driver
 
-import android.view.View
+import android.view.View.generateViewId
 import com.bluelinelabs.conductor.Controller
 import lol.adel.driver.screens.IdleController
 import lol.adel.driver.screens.OrderController
 
 object Ids {
-    val map = View.generateViewId()
-    val mapParent = View.generateViewId()
-    val mapPanel = View.generateViewId()
+    val map = generateViewId()
+    val mapParent = generateViewId()
+    val mapPanel = generateViewId()
 }
 
 fun Screen.toController(): Controller =
